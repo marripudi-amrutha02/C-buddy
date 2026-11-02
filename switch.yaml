@@ -1,0 +1,26 @@
+name: c-buddy-study-buddy
+description: AI Study Buddy via Telegram
+triggers:
+    - type: telegram
+    bot_token: ${TELEGRAM_BOT_TOKEN}
+    events: [message, document]
+agents:
+    - name: study-assistant
+    provider: claude-code
+    prompt_file: ./agent_prompt.md
+workflows:
+  doubt_solver:
+    trigger: telegram.message
+    steps:
+            - agent: study-assistant
+        input: "CSE doubt: {{telegram.message.text}}"
+            - action: telegram.reply
+        text: "{{agent.output}}"
+  daily_reminder:
+    trigger: schedule
+    cron: "0 9 * * *"
+    steps:
+            - agent: study-assistant
+        input: "Generate 1 DSA question with hint"
+            - action: telegram.send
+        text: "Morning! Challenge: {{agent.output}}"
